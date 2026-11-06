@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block breadcrumb %}PAINEL{% endblock %}
+{% block cabecalho %}Olá, {{ sessao_nome }}{% endblock %}
+{% block conteudo %}
+<div class="hero-card">
+  <div>
+    <span class="eyebrow">GESTÃO DA CIP/COSIP</span>
+    <h2>Valores arrecadados da iluminação pública</h2>
+    <p>Prefeitura Municipal de Santo André.</p>
+  </div>
+</div>
+
+<section class="content-page" style="margin-top:18px">
+  <div class="empty-state">
+    <span>▦</span>
+    <strong>Sistema em implantação</strong>
+    <p>As funções de gestão da CIP/COSIP serão disponibilizadas em breve.</p>
+  </div>
+</section>
+{% endblock %}

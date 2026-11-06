@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Auditoria{% endblock %}
+{% block breadcrumb %}AUDITORIA{% endblock %}
+{% block cabecalho %}Auditoria{% endblock %}
+{% block conteudo %}
+<section class="content-page">
+  <h2 class="section-title">Registro de atividades</h2>
+  <p class="section-copy">Últimos 200 eventos registrados no sistema.</p>
+  {% if logs %}
+  <table class="audit-table">
+    <thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead>
+    <tbody>
+      {% for l in logs %}
+      <tr>
+        <td>{{ l.criado_em|data_hora_br }}</td>
+        <td>{{ l.usuario }}</td>
+        <td>{{ l.acao }}</td>
+        <td>{{ l.detalhe }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><span>▣</span><strong>Sem registros</strong><p>As ações do sistema aparecerão aqui.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Usuários{% endblock %}
+{% block breadcrumb %}USUÁRIOS E PERMISSÕES{% endblock %}
+{% block cabecalho %}Usuários{% endblock %}
+{% block conteudo %}
+<section class="content-page">
+  <div class="page-actions">
+    <div>
+      <h2 class="section-title">Usuários do sistema</h2>
+      <p class="section-copy">Cadastro de acessos e definição de permissões.</p>
+    </div>
+    <a class="btn" href="{{ url_for('novo_usuario') }}">+ Novo usuário</a>
+  </div>
+  <div class="notice">O acesso ao sistema exige e-mail e senha. Usuários inativos permanecem cadastrados, mas não conseguem entrar.</div>
+
+  <div class="card-list">
+    {% for u in usuarios %}
+    <article class="list-card {{ 'linha-inativa' if not u.ativo }}">
+      <div>
+        <span class="id">{{ u.email }}</span>
+        <h3>{{ u.nome }}</h3>
+        <p>{{ perfis[u.perfil].descricao if u.perfil in perfis else u.perfil }}</p>
+      </div>
+      <div class="list-meta">
+        {% if not u.ativo %}<span class="perfil-tag inativo-tag">Inativo</span>{% endif %}
+        <span class="perfil-tag {{ u.perfil }}">{{ perfis[u.perfil].rotulo if u.perfil in perfis else u.perfil }}</span>
+        <a class="btn ghost" href="{{ url_for('editar_usuario', usuario_id=u.id) }}">Editar</a>
+        {% if u.id != sessao_id %}
+        <form method="post" action="{{ url_for('excluir_usuario', usuario_id=u.id) }}"
+              onsubmit="return confirm('Excluir o usuário {{ u.nome }}?');">
+          <button type="submit" class="remove-row">Excluir</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

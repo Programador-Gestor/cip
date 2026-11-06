@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10263f">
+  <title>{% block titulo %}CIP{% endblock %} | Gestão da CIP/COSIP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="{{ url_for('static', filename='brasao.svg') }}" alt="" class="brasao-side">
+        <span>GESTÃO <strong>CIP</strong></span>
+      </div>
+      <div class="sidebar-contract"><small>CONTRIBUIÇÃO DE ILUMINAÇÃO PÚBLICA</small><strong>CIP / COSIP</strong><span>● Santo André</span></div>
+      <nav>
+        {% set p = request.endpoint %}
+        <a class="nav-item {{ 'active' if p == 'dashboard' }}" href="{{ url_for('dashboard') }}"><span class="nav-icon">⌂</span> Painel</a>
+        {% if sessao_perfil == 'admin' %}
+          <a class="nav-item {{ 'active' if p in ('usuarios','novo_usuario','editar_usuario') }}" href="{{ url_for('usuarios') }}"><span class="nav-icon">♙</span> Usuários</a>
+          <a class="nav-item {{ 'active' if p == 'auditoria' }}" href="{{ url_for('auditoria') }}"><span class="nav-icon">▣</span> Auditoria</a>
+        {% endif %}
+      </nav>
+      <div class="sidebar-user">
+        <div class="avatar">{{ (sessao_nome or '?')[0] }}</div>
+        <div class="u-info"><strong>{{ sessao_nome }}</strong><small>{{ 'Administrador' if sessao_perfil == 'admin' else 'Visualização' }}</small></div>
+        <a href="{{ url_for('logout') }}" title="Sair">↪</a>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="breadcrumb">{% block breadcrumb %}{% endblock %}</p>
+          <h1>{% block cabecalho %}{% endblock %}</h1>
+        </div>
+      </header>
+      <div class="content">
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+          {% for categoria, texto in mensagens %}
+            <div class="flash {{ categoria }}">{{ texto }}</div>
+          {% endfor %}
+        {% endwith %}
+        {% block conteudo %}{% endblock %}
+      </div>
+    </section>
+  </div>
+</body>
+</html>

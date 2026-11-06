@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10263f">
+  <title>Gestão CIP | Acesso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <main class="login-layout">
+    <section class="brand-panel">
+      <div class="city-mark">
+        <img src="{{ url_for('static', filename='brasao.svg') }}" alt="Brasão de Santo André" class="brasao-login">
+        <span>GESTÃO <strong>CIP</strong></span>
+      </div>
+      <div class="brand-copy">
+        <p class="eyebrow">PREFEITURA MUNICIPAL DE SANTO ANDRÉ</p>
+        <h1>Gestão da<br>CIP/COSIP.</h1>
+        <p class="brand-description">Acompanhamento dos valores arrecadados da Contribuição para o Custeio do Serviço de Iluminação Pública.</p>
+      </div>
+      <div class="contract-chip">
+        <span class="contract-chip-icon">⌁</span>
+        <div><small>CONTRIBUIÇÃO DE ILUMINAÇÃO PÚBLICA</small><strong>CIP / COSIP</strong></div>
+        <span class="chip-status">Ativo</span>
+      </div>
+      <p class="brand-footer">Prefeitura Municipal de Santo André</p>
+    </section>
+
+    <section class="login-panel">
+      <div class="login-card">
+        <div class="login-heading">
+          <span class="access-label">ÁREA RESTRITA</span>
+          <h2>Acesse sua conta</h2>
+          <p>Use suas credenciais institucionais para continuar.</p>
+        </div>
+
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+          {% for categoria, texto in mensagens %}
+            <div class="flash {{ categoria }}">{{ texto }}</div>
+          {% endfor %}
+        {% endwith %}
+
+        <form class="auth" method="post" action="{{ url_for('login') }}">
+          <label for="email">E-mail institucional</label>
+          <input id="email" name="email" type="email" placeholder="nome@santoandre.sp.gov.br" required autofocus>
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" placeholder="Digite sua senha" required>
+          <button class="primary-button" type="submit" style="margin-top:14px">Entrar no sistema <span>→</span></button>
+        </form>
+
+        <div class="demo-access">
+          <p>Perfis de acesso do sistema:</p>
+          <div class="perfil-info">
+            <div><strong>Visualização</strong><small>Somente consulta, sem lançar ou editar registros.</small></div>
+            <div><strong>Administrador</strong><small>Gestão completa do sistema e dos usuários.</small></div>
+          </div>
+          <p class="aviso-acesso">O acesso exige e-mail institucional e senha. Solicite suas credenciais ao administrador do sistema.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
