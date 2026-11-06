@@ -9,10 +9,12 @@ User=cip
 Group=cip
 WorkingDirectory=/opt/cip
 EnvironmentFile=/etc/cip.env
-# --preload: cria tabelas/admin uma única vez, antes de abrir os workers.
-ExecStart=/opt/cip/venv/bin/gunicorn --preload --workers 2 --threads 4 --bind 127.0.0.1:5002 --access-logfile - app:app
+# --timeout 600: upload de até 400 MB e geração do Excel da análise (~1 min).
+# --preload: cria as tabelas uma única vez, antes de abrir os workers.
+ExecStart=/opt/cip/venv/bin/gunicorn --preload --workers 2 --threads 4 --timeout 600 --bind 127.0.0.1:5002 --access-logfile - app:app
 Restart=always
 RestartSec=5
+UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full

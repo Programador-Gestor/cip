@@ -1,9 +1,12 @@
 # Faixas em vez de versões travadas: o mesmo arquivo precisa funcionar no
 # Windows com Python 3.14 (desenvolvimento) e no Ubuntu com Python 3.12 (VPS).
-# psycopg só tem wheel para 3.14 a partir da 3.3.4.
 Flask>=3.0,<4
 Werkzeug>=3.0,<4
 psycopg[binary]>=3.3.4
+reportlab>=4.0,<6
+python-docx>=1.1,<2
+openpyxl>=3.1,<4
+tzdata>=2024.1            # fuso de Brasília também no Windows
 
-# Servidor de produção (só Linux). Localmente use "python app.py".
+# Servidor de produção (só Linux). Localmente use "flask --app app run".
 gunicorn>=22; sys_platform != "win32"

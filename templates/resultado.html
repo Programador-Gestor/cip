@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block titulo %}{{ F.mes_extenso(r.mes_arquivo) }}{% endblock %}
+{% block conteudo %}
+<section class="topo-resultado">
+  <div>
+    <p class="rotulo">Arquivo de</p>
+    <h1 class="titulo-mes">{{ F.mes_extenso(r.mes_arquivo) }}</h1>
+    <p class="sub">{{ r.nome_arquivo }} · processado em {{ processado_em|data_hora_br }}</p>
+  </div>
+  <div class="baixar">
+    <span>Baixar</span>
+    <a class="botao" href="{{ url_for('baixar', aid=aid, fmt='pdf') }}">PDF</a>
+    <a class="botao" href="{{ url_for('baixar', aid=aid, fmt='docx') }}">Word</a>
+    <a class="botao" href="{{ url_for('baixar', aid=aid, fmt='xlsx') }}">Excel</a>
+  </div>
+  {% if eh_admin() %}
+  <div class="excel-analise">
+    <form method="post" action="{{ url_for('excel_da_analise', aid=aid) }}" enctype="multipart/form-data"
+          onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Gerando… (até 1 minuto)'; setTimeout(()=>{this.querySelector('button').disabled=false; this.querySelector('button').textContent='Baixar Excel da análise';}, 90000);">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <span><strong>Excel da análise</strong> (dados + fórmulas) — selecione de novo o arquivo <code>{{ r.nome_arquivo }}</code> deste mês:</span>
+      <input type="file" name="arquivo" accept=".txt,text/plain" required>
+      <button type="submit" class="secundario">Baixar Excel da análise</button>
+    </form>
+    <p class="sub">Contém nomes e CPF/CNPJ. É gerado na hora e entregue só para você: nem o arquivo nem o Excel ficam guardados no servidor.</p>
+  </div>
+  {% endif %}
+</section>
+
+<section class="grade">
+  {% for ind in indicadores %}
+  <article class="card">
+    <h2><span class="n">{{ ind.n }}</span>{{ ind.titulo }}</h2>
+    {% if ind.sub %}<p class="card-sub">{{ ind.sub }}</p>{% endif %}
+    <table class="contagem">
+      <thead><tr><th></th><th>CPF</th><th>CNPJ</th><th>Total</th></tr></thead>
+      <tbody>
+      {% for l in ind.linhas %}
+        <tr class="{{ 'principal' if loop.first }}">
+          <th scope="row">{{ l[0] }}</th>
+          {% for x in l[1:] %}<td>{{ F.inteiro(x) }}</td>{% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </article>
+  {% endfor %}
+</section>
+
+<section class="card card-valor">
+  <h2><span class="n">4</span>Valor arrecadado no arquivo</h2>
+  <div class="valor-linha destaque-mes">
+    <span>Faturas de {{ F.mes_extenso(r.mes_arquivo) }}</span>
+    <strong>{{ F.reais(r.valor_mes.valor) }}</strong>
+  </div>
+  <details class="valor-outros">
+    <summary class="valor-linha">
+      <span>Faturas de outros meses <small>({{ r.outros_meses|length }} meses)</small></span>
+      <strong>{{ F.reais(r.valor_outros) }}</strong>
+    </summary>
+    <ul class="lista-meses">
+      {% for m in r.outros_meses %}
+      <li><span>{{ F.mes_extenso(m.mes) }}</span><span>{{ F.reais(m.valor) }}</span></li>
+      {% endfor %}
+    </ul>
+  </details>
+  <div class="valor-linha total">
+    <span>Total recebido no arquivo</span>
+    <strong>{{ F.reais(r.valor_total) }}</strong>
+  </div>
+</section>
+
+<details class="rodape-resultado">
+  <summary>Fora das contagens e conferência</summary>
+  <ul>
+    {% for t in fora %}<li>{{ t }}</li>{% endfor %}
+    <li class="ok">{{ conferencia }}</li>
+  </ul>
+</details>
+{% endblock %}

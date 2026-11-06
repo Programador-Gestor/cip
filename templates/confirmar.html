@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Confirmar valor da CIP{% endblock %}
+{% block conteudo %}
+{% set mes = F.mes_extenso(r.mes_arquivo) %}
+{% set a = p.arquivo %}
+<section class="cartao">
+  <h1>Valor da CIP de {{ mes }}</h1>
+  {% if p.tipo == 'sem_valor' %}
+  <p>{{ mes|capitalize }} não está na base histórica de valores. Valor mais pago nas faturas de {{ mes }} deste arquivo:</p>
+  {% else %}
+  <p>O valor mais pago nas faturas de {{ mes }} deste arquivo é diferente do cadastrado na base histórica.
+     A base só muda se um administrador escolher.</p>
+  {% endif %}
+
+  <table class="tabela comparar">
+    <thead><tr><th></th><th class="num">CPF</th><th class="num">CNPJ</th></tr></thead>
+    <tbody>
+      {% if p.base %}
+      <tr><th scope="row">Base histórica <small>({{ p.base.origem }})</small></th>
+          <td class="num">{{ F.reais(p.base.cpf) }}</td><td class="num">{{ F.reais(p.base.cnpj) }}</td></tr>
+      {% endif %}
+      <tr><th scope="row">Mais pago no arquivo</th>
+          <td class="num">{% if a.cpf.valor is not none %}{{ F.reais(a.cpf.valor) }}<small>{{ F.inteiro(a.cpf.registros) }} de {{ F.inteiro(a.cpf.de) }} pagamentos</small>{% else %}—{% endif %}</td>
+          <td class="num">{% if a.cnpj.valor is not none %}{{ F.reais(a.cnpj.valor) }}<small>{{ F.inteiro(a.cnpj.registros) }} de {{ F.inteiro(a.cnpj.de) }} pagamentos</small>{% else %}—{% endif %}</td></tr>
+    </tbody>
+  </table>
+
+  {% if not eh_admin() %}
+  <p class="aviso">Os indicadores deste arquivo serão mostrados depois que um administrador confirmar o valor da CIP do mês.</p>
+  {% else %}
+  <div class="escolhas">
+    {% if p.ind2_base %}
+    <form method="post" action="{{ url_for('confirmar', aid=d.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="escolha" value="base">
+      <button type="submit">Usar a base histórica</button>
+      <p class="sub">Mantém {{ F.reais(p.base.cpf) }} / {{ F.reais(p.base.cnpj) }}. Pagamentos com outro valor vão para o indicador 2.</p>
+    </form>
+    {% endif %}
+    {% if p.ind2_arquivo %}
+    <form method="post" action="{{ url_for('confirmar', aid=d.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="escolha" value="arquivo">
+      <button type="submit" class="{{ 'secundario' if p.ind2_base }}">{{ 'Acrescentar à base' if p.tipo == 'sem_valor' else 'Atualizar a base com o valor do arquivo' }}</button>
+      <p class="sub">Grava {{ F.reais(a.cpf.valor) }} / {{ F.reais(a.cnpj.valor) }} para {{ mes }}{% if p.base %}; o valor anterior fica no registro de alterações{% endif %}.</p>
+    </form>
+    {% else %}
+    <p class="erro">Não há pagamentos de CPF e CNPJ suficientes no arquivo para identificar o valor do mês.
+       Cancele este processamento, cadastre o valor de {{ mes }} em <a href="{{ url_for('valores') }}">Valores da CIP</a> e envie o arquivo de novo.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('cancelar', aid=d.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="link">Cancelar processamento</button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

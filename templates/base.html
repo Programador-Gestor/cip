@@ -1,54 +1,38 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#10263f">
-  <title>{% block titulo %}CIP{% endblock %} | Gestão da CIP/COSIP</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}CIP/COSIP{% endblock %} · Gestão CIP · Santo André</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <img src="{{ url_for('static', filename='brasao.svg') }}" alt="" class="brasao-side">
-        <span>GESTÃO <strong>CIP</strong></span>
-      </div>
-      <div class="sidebar-contract"><small>CONTRIBUIÇÃO DE ILUMINAÇÃO PÚBLICA</small><strong>CIP / COSIP</strong><span>● Santo André</span></div>
-      <nav>
-        {% set p = request.endpoint %}
-        <a class="nav-item {{ 'active' if p == 'dashboard' }}" href="{{ url_for('dashboard') }}"><span class="nav-icon">⌂</span> Painel</a>
-        {% if sessao_perfil == 'admin' %}
-          <a class="nav-item {{ 'active' if p in ('usuarios','novo_usuario','editar_usuario') }}" href="{{ url_for('usuarios') }}"><span class="nav-icon">♙</span> Usuários</a>
-          <a class="nav-item {{ 'active' if p == 'auditoria' }}" href="{{ url_for('auditoria') }}"><span class="nav-icon">▣</span> Auditoria</a>
-        {% endif %}
-      </nav>
-      <div class="sidebar-user">
-        <div class="avatar">{{ (sessao_nome or '?')[0] }}</div>
-        <div class="u-info"><strong>{{ sessao_nome }}</strong><small>{{ 'Administrador' if sessao_perfil == 'admin' else 'Visualização' }}</small></div>
-        <a href="{{ url_for('logout') }}" title="Sair">↪</a>
-      </div>
-    </aside>
-
-    <section class="workspace">
-      <header class="topbar">
-        <div>
-          <p class="breadcrumb">{% block breadcrumb %}{% endblock %}</p>
-          <h1>{% block cabecalho %}{% endblock %}</h1>
-        </div>
-      </header>
-      <div class="content">
-        {% with mensagens = get_flashed_messages(with_categories=true) %}
-          {% for categoria, texto in mensagens %}
-            <div class="flash {{ categoria }}">{{ texto }}</div>
-          {% endfor %}
-        {% endwith %}
-        {% block conteudo %}{% endblock %}
-      </div>
-    </section>
-  </div>
+  <header class="topo">
+    <a href="{{ url_for('index') }}" class="marca"><img src="{{ url_for('static', filename='brasao.svg') }}" alt="" class="brasao">Gestão CIP <span>CIP/COSIP · Santo André</span></a>
+    {% if g.usuario %}
+    <nav>
+      <a href="{{ url_for('index') }}">Arquivos</a>
+      {% if eh_admin() %}
+      <a href="{{ url_for('valores') }}">Valores da CIP</a>
+      <a href="{{ url_for('usuarios') }}">Usuários</a>
+      <a href="{{ url_for('auditoria') }}">Auditoria</a>
+      {% endif %}
+      <span class="quem">{{ g.usuario.nome }} · {{ 'Administrador' if eh_admin() else 'Visualização' }}</span>
+      <form method="post" action="{{ url_for('sair') }}" class="sair">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="link-claro">Sair</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% with msgs = get_flashed_messages() %}
+      {% for m in msgs %}<div class="aviso">{{ m }}</div>{% endfor %}
+    {% endwith %}
+    {% block conteudo %}{% endblock %}
+  </main>
 </body>
 </html>

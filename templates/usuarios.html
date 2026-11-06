@@ -1,39 +1,40 @@
 {% extends "base.html" %}
 {% block titulo %}Usuários{% endblock %}
-{% block breadcrumb %}USUÁRIOS E PERMISSÕES{% endblock %}
-{% block cabecalho %}Usuários{% endblock %}
 {% block conteudo %}
-<section class="content-page">
-  <div class="page-actions">
+<section class="cartao">
+  <div class="cabecalho-cartao">
     <div>
-      <h2 class="section-title">Usuários do sistema</h2>
-      <p class="section-copy">Cadastro de acessos e definição de permissões.</p>
+      <h1>Usuários</h1>
+      <p class="sub">Cadastro de acessos e perfis. Usuários inativos permanecem cadastrados, mas não conseguem entrar.</p>
     </div>
-    <a class="btn" href="{{ url_for('novo_usuario') }}">+ Novo usuário</a>
+    <a class="botao" href="{{ url_for('novo_usuario') }}">+ Novo usuário</a>
   </div>
-  <div class="notice">O acesso ao sistema exige e-mail e senha. Usuários inativos permanecem cadastrados, mas não conseguem entrar.</div>
-
-  <div class="card-list">
+  <div class="rolar-x">
+  <table class="tabela">
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th></th></tr></thead>
+    <tbody>
     {% for u in usuarios %}
-    <article class="list-card {{ 'linha-inativa' if not u.ativo }}">
-      <div>
-        <span class="id">{{ u.email }}</span>
-        <h3>{{ u.nome }}</h3>
-        <p>{{ perfis[u.perfil].descricao if u.perfil in perfis else u.perfil }}</p>
-      </div>
-      <div class="list-meta">
-        {% if not u.ativo %}<span class="perfil-tag inativo-tag">Inativo</span>{% endif %}
-        <span class="perfil-tag {{ u.perfil }}">{{ perfis[u.perfil].rotulo if u.perfil in perfis else u.perfil }}</span>
-        <a class="btn ghost" href="{{ url_for('editar_usuario', usuario_id=u.id) }}">Editar</a>
-        {% if u.id != sessao_id %}
-        <form method="post" action="{{ url_for('excluir_usuario', usuario_id=u.id) }}"
-              onsubmit="return confirm('Excluir o usuário {{ u.nome }}?');">
-          <button type="submit" class="remove-row">Excluir</button>
-        </form>
-        {% endif %}
-      </div>
-    </article>
+      <tr class="{{ 'inativo' if not u.ativo }}">
+        <td>{{ u.nome }}{% if u.id == g.usuario.id %} <small>(você)</small>{% endif %}</td>
+        <td>{{ u.email }}</td>
+        <td><span class="etiqueta-perfil {{ u.perfil }}">{{ PERFIS[u.perfil].rotulo if u.perfil in PERFIS else u.perfil }}</span></td>
+        <td>{{ 'Ativo' if u.ativo else 'Inativo' }}</td>
+        <td>
+          <div class="acoes-linha">
+            <a href="{{ url_for('editar_usuario', uid=u.id) }}">Editar</a>
+            {% if u.id != g.usuario.id %}
+            <form method="post" action="{{ url_for('excluir_usuario', uid=u.id) }}"
+                  onsubmit="return confirm('Excluir o usuário {{ u.nome }}?');">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="link">Excluir</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
     {% endfor %}
+    </tbody>
+  </table>
   </div>
 </section>
 {% endblock %}

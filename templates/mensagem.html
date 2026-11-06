@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<section class="cartao">
+  <h1>{{ titulo }}</h1>
+  <p>{{ texto }}</p>
+  <a href="{{ url_for('index') }}">Voltar aos arquivos</a>
+</section>
+{% endblock %}

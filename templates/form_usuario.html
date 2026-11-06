@@ -1,60 +1,43 @@
 {% extends "base.html" %}
 {% block titulo %}{{ 'Editar usuário' if usuario else 'Novo usuário' }}{% endblock %}
-{% block breadcrumb %}USUÁRIOS E PERMISSÕES{% endblock %}
-{% block cabecalho %}{{ 'Editar usuário' if usuario else 'Novo usuário' }}{% endblock %}
 {% block conteudo %}
-<a class="back-button" href="{{ url_for('usuarios') }}">← Voltar para usuários</a>
-<section class="content-page">
-  <h2 class="section-title">{{ 'Alterar dados de acesso' if usuario else 'Cadastrar novo acesso' }}</h2>
-  <p class="section-copy">{% if usuario %}Deixe os campos de senha em branco para mantê-la inalterada.{% else %}A senha deve ter ao menos 8 caracteres.{% endif %}</p>
+<p><a href="{{ url_for('usuarios') }}">← Voltar para usuários</a></p>
+<section class="cartao">
+  <h1>{{ 'Editar usuário' if usuario else 'Novo usuário' }}</h1>
+  <p class="sub">{% if usuario %}Deixe os campos de senha em branco para mantê-la.{% else %}A senha deve ter ao menos 8 caracteres.{% endif %}</p>
+  <form method="post" action="{{ url_for('editar_usuario', uid=usuario.id) if usuario else url_for('novo_usuario') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <h2>Identificação</h2>
+    <div class="form-coluna-larga">
+      <label>Nome completo *
+        <input name="nome" value="{{ usuario.nome if usuario else (form.nome if form else '') }}" required autofocus></label>
+      <label>E-mail institucional *
+        <input name="email" type="email" value="{{ usuario.email if usuario else (form.email if form else '') }}" placeholder="nome@santoandre.sp.gov.br" required></label>
+    </div>
+    {% if usuario %}
+    <label class="marcar"><input type="checkbox" name="ativo" value="1" {% if usuario.ativo %}checked{% endif %}> Usuário ativo (pode acessar o sistema)</label>
+    {% endif %}
 
-  <form method="post" action="{{ url_for('editar_usuario', usuario_id=usuario.id) if usuario else url_for('novo_usuario') }}">
-    <section class="form-section">
-      <h3>Identificação</h3>
-      <div class="form-grid">
-        <label class="field">Nome completo *
-          <input name="nome" value="{{ usuario.nome if usuario else (form.nome if form else '') }}" required autofocus>
-        </label>
-        <label class="field">E-mail institucional *
-          <input name="email" type="email" value="{{ usuario.email if usuario else (form.email if form else '') }}" placeholder="nome@santoandre.sp.gov.br" required>
-        </label>
-      </div>
-      {% if usuario %}
-      <label class="field" style="margin-top:14px;flex-direction:row;align-items:center;gap:9px;display:flex">
-        <input type="checkbox" name="ativo" value="1" {% if usuario.ativo %}checked{% endif %} style="width:auto">
-        <span>Usuário ativo (pode acessar o sistema)</span>
-      </label>
-      {% endif %}
-    </section>
+    <h2>Perfil de acesso</h2>
+    <div class="escolha-perfil">
+      {% set atual = usuario.perfil if usuario else (form.perfil if form else 'viewer') %}
+      {% for chave, p in PERFIS.items() %}
+      <label><input type="radio" name="perfil" value="{{ chave }}" {% if atual == chave %}checked{% endif %}>
+        <span><strong>{{ p.rotulo }}</strong><small>{{ p.descricao }}</small></span></label>
+      {% endfor %}
+    </div>
 
-    <section class="form-section">
-      <h3>Perfil de acesso</h3>
-      <div class="escolha-perfil">
-        {% set atual = usuario.perfil if usuario else (form.perfil if form else 'viewer') %}
-        {% for chave, p in perfis.items() %}
-        <label>
-          <input type="radio" name="perfil" value="{{ chave }}" {% if atual == chave %}checked{% endif %}>
-          <span><strong>{{ p.rotulo }}</strong><small>{{ p.descricao }}</small></span>
-        </label>
-        {% endfor %}
-      </div>
-    </section>
+    <h2>{{ 'Redefinir senha' if usuario else 'Senha de acesso' }}</h2>
+    <div class="form-coluna-larga">
+      <label>{{ 'Nova senha' if usuario else 'Senha *' }}
+        <input name="senha" type="password" minlength="8" autocomplete="new-password" {% if not usuario %}required{% endif %}></label>
+      <label>Confirmar senha
+        <input name="confirmacao" type="password" minlength="8" autocomplete="new-password" {% if not usuario %}required{% endif %}></label>
+    </div>
 
-    <section class="form-section">
-      <h3>{{ 'Redefinir senha' if usuario else 'Senha de acesso' }}</h3>
-      <div class="form-grid">
-        <label class="field">{{ 'Nova senha' if usuario else 'Senha *' }}
-          <input name="senha" type="password" autocomplete="new-password" {% if not usuario %}required{% endif %}>
-        </label>
-        <label class="field">Confirmar senha
-          <input name="confirmacao" type="password" autocomplete="new-password" {% if not usuario %}required{% endif %}>
-        </label>
-      </div>
-    </section>
-
-    <div class="form-actions">
-      <a class="btn secondary" href="{{ url_for('usuarios') }}">Cancelar</a>
-      <button class="btn" type="submit">{{ 'Salvar alterações' if usuario else 'Cadastrar usuário' }} →</button>
+    <div class="form-acoes">
+      <a class="botao secundario" href="{{ url_for('usuarios') }}">Cancelar</a>
+      <button type="submit">{{ 'Salvar alterações' if usuario else 'Cadastrar usuário' }} →</button>
     </div>
   </form>
 </section>

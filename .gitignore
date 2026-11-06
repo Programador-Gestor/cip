@@ -3,14 +3,22 @@
 *.env
 !.env.example
 
+# Dados pessoais: nunca versionar arquivos da Enel nem Excel da análise
+*.txt
+!requirements.txt
+!requirements-dev.txt
+*_analise_com_formulas.xlsx
+uploads/
+
 # Banco local
+instance/
 *.db
-*.db-journal
 *.sqlite3
 
 # Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
 venv/
 .venv/
 

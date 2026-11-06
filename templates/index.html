@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block conteudo %}
+{% if eh_admin() %}
+<section class="cartao">
+  <h1>Enviar arquivo do mês</h1>
+  <p class="sub">Arquivo <code>B_A_SAN_COSIP.txt</code> da Enel (até {{ max_mb }} MB). O arquivo é lido, analisado e apagado: só os totais ficam guardados.</p>
+
+  {% if erros %}
+  <div class="erro" id="erros-servidor">
+    <strong>Arquivo recusado</strong>
+    <ul>{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <div class="erro" id="erros" hidden><strong>Arquivo recusado</strong><ul></ul></div>
+
+  <form id="form" action="{{ url_for('enviar') }}" method="post" enctype="multipart/form-data">
+    <label class="soltar" id="soltar">
+      <input type="file" name="arquivo" id="arquivo" accept=".txt,text/plain" required>
+      <span id="nome-arquivo">Clique para escolher ou arraste o arquivo aqui</span>
+    </label>
+    <button type="submit" id="botao">Processar</button>
+  </form>
+  <div class="progresso" id="progresso" hidden>
+    <div class="barra"><div id="barra"></div></div>
+    <span id="etapa">Enviando…</span>
+  </div>
+</section>
+{% endif %}
+
+<section class="cartao">
+  <h2>Arquivos processados</h2>
+  {% if historico %}
+  <table class="tabela">
+    <thead><tr><th>Mês do arquivo</th><th>Arquivo</th><th class="num">Valor arrecadado</th><th>Processado em</th></tr></thead>
+    <tbody>
+    {% for h in historico %}
+      <tr>
+        <td><a href="{{ url_for('resultado', aid=h.id) }}">{{ F.mes_extenso(h.mes_arquivo) }}</a>
+            {% if h.situacao == 'pendente' %}<span class="etiqueta">aguardando confirmação do valor da CIP</span>{% endif %}</td>
+        <td>{{ h.nome_arquivo }}</td>
+        <td class="num">{{ F.reais(h.valor_total) }}</td>
+        <td>{{ h.processado_em|data_hora_br }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="sub">Nenhum arquivo processado ainda.</p>
+  {% endif %}
+</section>
+
+{% if eh_admin() %}
+<script>
+const form = document.getElementById('form'), input = document.getElementById('arquivo');
+const soltar = document.getElementById('soltar'), nome = document.getElementById('nome-arquivo');
+const prog = document.getElementById('progresso'), barra = document.getElementById('barra');
+const etapa = document.getElementById('etapa'), botao = document.getElementById('botao');
+const caixaErros = document.getElementById('erros');
+
+input.addEventListener('change', () => { nome.textContent = input.files[0] ? input.files[0].name : nome.textContent; });
+['dragover','dragenter'].forEach(ev => soltar.addEventListener(ev, e => { e.preventDefault(); soltar.classList.add('ativo'); }));
+['dragleave','drop'].forEach(ev => soltar.addEventListener(ev, e => { e.preventDefault(); soltar.classList.remove('ativo'); }));
+soltar.addEventListener('drop', e => { if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); } });
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!input.files[0]) return;
+  const srv = document.getElementById('erros-servidor'); if (srv) srv.hidden = true;
+  caixaErros.hidden = true; botao.disabled = true; prog.hidden = false;
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', form.action);
+  xhr.setRequestHeader('X-Requested-With', 'fetch');
+  xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}');
+  xhr.upload.onprogress = ev => {
+    if (ev.lengthComputable) {
+      const p = Math.round(ev.loaded / ev.total * 100);
+      barra.style.width = p + '%';
+      etapa.textContent = p < 100 ? `Enviando… ${p}%` : 'Conferindo e calculando…';
+    }
+  };
+  xhr.onload = () => {
+    let r = {};
+    try { r = JSON.parse(xhr.responseText); } catch (_) {}
+    if (r.redirect) { window.location = r.redirect; return; }
+    const ul = caixaErros.querySelector('ul'); ul.innerHTML = '';
+    (r.erros || ['Erro inesperado no servidor (' + xhr.status + ').']).forEach(t => {
+      const li = document.createElement('li'); li.textContent = t; ul.appendChild(li);
+    });
+    caixaErros.hidden = false; prog.hidden = true; botao.disabled = false;
+  };
+  xhr.onerror = () => { etapa.textContent = 'Falha de conexão.'; botao.disabled = false; };
+  const fd = new FormData(); fd.append('arquivo', input.files[0]);
+  xhr.send(fd);
+});
+</script>
+{% endif %}
+{% endblock %}

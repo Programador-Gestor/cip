@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}Valores da CIP{% endblock %}
+{% block conteudo %}
+<section class="cartao">
+  <div class="cabecalho-linha">
+    <h1>Valores da CIP</h1>
+    <a class="botao" href="{{ url_for('baixar_valores') }}">Baixar planilha</a>
+  </div>
+  <table class="tabela estreita">
+    <thead><tr><th>Mês de referência</th><th class="num">CPF</th><th class="num">CNPJ</th><th>Origem</th></tr></thead>
+    <tbody>
+    {% for v in valores %}
+      <tr><td>{{ rotulo_mes(v.mes) }}</td><td class="num">{{ F.reais(v.cpf) }}</td>
+          <td class="num">{{ F.reais(v.cnpj) }}</td><td class="sub-cel">{{ v.origem }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if divergencias %}
+<section class="cartao destaque-aviso">
+  <h2>Meses com valor diferente na planilha</h2>
+  <p class="sub">Não foram alterados. Substitua só se a planilha estiver certa.</p>
+  <table class="tabela estreita">
+    <thead><tr><th>Mês</th><th class="num">Cadastrado</th><th class="num">Na planilha</th><th></th></tr></thead>
+    <tbody>
+    {% for d in divergencias %}
+      <tr><td>{{ rotulo_mes(d.mes) }}</td>
+          <td class="num">{{ F.reais(d.atual.cpf) }} / {{ F.reais(d.atual.cnpj) }}</td>
+          <td class="num">{{ F.reais(d.planilha.cpf) }} / {{ F.reais(d.planilha.cnpj) }}</td>
+          <td><form method="post" action="{{ url_for('substituir_valor') }}">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <input type="hidden" name="mes" value="{{ d.mes }}">
+                <input type="hidden" name="cpf" value="{{ d.planilha.cpf }}">
+                <input type="hidden" name="cnpj" value="{{ d.planilha.cnpj }}">
+                <input type="hidden" name="planilha" value="{{ nome_planilha }}">
+                <button type="submit" class="pequeno">Substituir</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if eh_admin() %}
+<section class="cartao">
+  <h2>Acrescentar meses</h2>
+  <p class="sub">Planilha .xlsx no formato da atual (coluna A = mês, ex.: Dez/26; B = CPF; C = CNPJ, em reais).
+     Só meses novos são acrescentados; nenhum valor cadastrado é apagado.</p>
+  <form action="{{ url_for('importar_valores') }}" method="post" enctype="multipart/form-data" class="form-linha">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="file" name="planilha" accept=".xlsx" required>
+    <button type="submit">Importar</button>
+  </form>
+</section>
+{% endif %}
+
+{% if alteracoes %}
+<details class="cartao recolher">
+  <summary><h2>Registro de alterações</h2></summary>
+  <table class="tabela">
+    <thead><tr><th>Mês</th><th class="num">Antes</th><th class="num">Depois</th><th>Motivo</th><th>Quando</th></tr></thead>
+    <tbody>
+    {% for a in alteracoes %}
+      <tr><td>{{ rotulo_mes(a.mes) }}</td>
+          <td class="num">{{ F.reais(a.cpf_anterior) }} / {{ F.reais(a.cnpj_anterior) }}</td>
+          <td class="num">{{ F.reais(a.cpf_novo) }} / {{ F.reais(a.cnpj_novo) }}</td>
+          <td>{{ a.motivo }}</td><td>{{ a.alterado_em|data_hora_br }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
+{% endblock %}
